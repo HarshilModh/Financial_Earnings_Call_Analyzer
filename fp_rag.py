@@ -4,7 +4,7 @@
 # Phase 3 — RAG engine for the Financial Earnings Call Analyzer.
 #
 # Public API: query()
-# Imported by harshilmodh_fp_evaluate.py and harshilmodh_fp_app.py.
+# Imported by fp_evaluate.py and fp_app.py.
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ import chromadb
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 from openai import OpenAI
 
-from harshilmodh_fp_config import (
+from fp_config import (
     CHROMA_COLLECTION,
     CHROMA_DIR,
     EMBEDDING_MODEL,

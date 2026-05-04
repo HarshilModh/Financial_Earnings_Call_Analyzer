@@ -22,7 +22,7 @@ import chromadb
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 from openai import OpenAI
 
-from harshilmodh_fp_config import (
+from fp_config import (
     CHROMA_COLLECTION,
     CHROMA_DIR,
     COMPANIES,

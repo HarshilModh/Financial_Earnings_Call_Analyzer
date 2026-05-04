@@ -13,8 +13,8 @@
 #   5. Tags each chunk with SEC section metadata via regex scan
 #   6. Upserts into a local ChromaDB collection (SHA-256 chunk ID → idempotent)
 #
-# Run after harshilmodh_fp_download.py:
-#   python harshilmodh_fp_build_kb.py
+# Run after fp_download.py:
+#   python fp_build_kb.py
 
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunct
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from tqdm import tqdm
 
-from harshilmodh_fp_config import (
+from fp_config import (
     CHROMA_COLLECTION,
     CHROMA_DIR,
     CHUNK_OVERLAP,
@@ -215,7 +215,7 @@ def build_kb() -> None:
     if not filings_root.exists():
         raise SystemExit(
             f"Filings directory not found: {filings_root}\n"
-            "Run  python harshilmodh_fp_download.py  first."
+            "Run  python fp_download.py  first."
         )
 
     CHROMA_DIR.mkdir(parents=True, exist_ok=True)

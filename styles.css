@@ -238,3 +238,38 @@ header[data-testid="stHeader"], footer, .stDeployButton, [data-testid="stDecorat
     border-radius: 8px !important;
 }
 hr { border-color: rgba(128, 128, 128, 0.2) !important; }
+
+/* Custom Headers */
+.header-card {
+    padding: 1.5rem; 
+    border-radius: 12px; 
+    margin-bottom: 1.5rem;
+}
+.header-card h3 {
+    margin-top: 0;
+}
+.header-card p {
+    margin-bottom: 0; 
+    font-size: 0.95rem;
+}
+
+.qa-header {
+    background: linear-gradient(135deg, var(--header-qa-bg1) 0%, var(--header-qa-bg2) 100%);
+    border: 1px solid var(--header-qa-border);
+}
+.qa-header h3 { color: var(--header-qa-title) !important; }
+.qa-header p { color: var(--header-qa-text) !important; }
+
+.agent-header {
+    background: linear-gradient(135deg, var(--header-agent-bg1) 0%, var(--header-agent-bg2) 100%);
+    border: 1px solid var(--header-agent-border);
+}
+.agent-header h3 { color: var(--header-agent-title) !important; }
+.agent-header p { color: var(--header-agent-text) !important; }
+
+.research-header {
+    background: linear-gradient(135deg, var(--header-research-bg1) 0%, var(--header-research-bg2) 100%);
+    border: 1px solid var(--header-research-border);
+}
+.research-header h3 { color: var(--header-research-title) !important; }
+.research-header p { color: var(--header-research-text) !important; }

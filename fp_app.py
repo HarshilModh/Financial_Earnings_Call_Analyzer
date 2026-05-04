@@ -11,7 +11,7 @@
 #   Tab 4    — Evaluation: metrics table from eval_results.json
 #
 # Run:
-#   streamlit run harshilmodh_fp_app.py
+#   streamlit run fp_app.py
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ import plotly.io as pio
 import streamlit as st
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 
-from harshilmodh_fp_config import (
+from fp_config import (
     CHROMA_COLLECTION,
     CHROMA_DIR,
     COMPANIES,
@@ -77,7 +77,7 @@ def _kb_stats(collection) -> dict[str, int]:
 @st.cache_resource(show_spinner=False)
 def _load_rag():
     try:
-        from harshilmodh_fp_rag import query as rag_query
+        from fp_rag import query as rag_query
         return rag_query
     except ImportError:
         return None
@@ -90,7 +90,7 @@ _RAG_QUERY = _load_rag()
 @st.cache_resource(show_spinner=False)
 def _load_agent():
     try:
-        from harshilmodh_fp_agent import agent_run
+        from fp_agent import agent_run
         return agent_run
     except ImportError:
         return None
@@ -103,7 +103,7 @@ _AGENT_RUN = _load_agent()
 @st.cache_resource(show_spinner=False)
 def _load_research():
     try:
-        from harshilmodh_fp_research import run_deep_research
+        from fp_research import run_deep_research
         return run_deep_research
     except ImportError:
         return None
@@ -121,7 +121,7 @@ def run_query(question: str, company_filter, filing_filter, top_k: int) -> dict:
             top_k=top_k,
         )
     return {
-        "answer": "RAG engine not available. Please ensure harshilmodh_fp_rag.py is present.",
+        "answer": "RAG engine not available. Please ensure fp_rag.py is present.",
         "sources": [],
         "retrieved_chunks": [],
     }
@@ -153,7 +153,7 @@ with st.sidebar:
     st.markdown("<p style='text-align: center; color: #64748b; font-size: 0.9rem;'>FE 524 — harshilmodh</p>", unsafe_allow_html=True)
     st.markdown("---")
     
-    theme_mode = st.radio("Theme", ["Light", "Dark"], index=1, horizontal=True, label_visibility="collapsed")
+    theme_mode = st.radio("Theme", ["Light", "Dark"], index=0, horizontal=True, label_visibility="collapsed")
     if theme_mode == "Dark":
         st.markdown("""<style>
         :root, [data-testid="stAppViewContainer"] {
@@ -161,6 +161,23 @@ with st.sidebar:
             --secondary-background-color: #18181b !important;
             --text-color: #f8fafc !important;
             --primary-color: #6366f1 !important;
+            --header-qa-bg1: #064e3b !important;
+            --header-qa-bg2: #022c22 !important;
+            --header-qa-border: #047857 !important;
+            --header-qa-title: #34d399 !important;
+            --header-qa-text: #a7f3d0 !important;
+            
+            --header-agent-bg1: #1e3a8a !important;
+            --header-agent-bg2: #172554 !important;
+            --header-agent-border: #1d4ed8 !important;
+            --header-agent-title: #60a5fa !important;
+            --header-agent-text: #bfdbfe !important;
+            
+            --header-research-bg1: #78350f !important;
+            --header-research-bg2: #451a03 !important;
+            --header-research-border: #b45309 !important;
+            --header-research-title: #fbbf24 !important;
+            --header-research-text: #fde68a !important;
         }
         </style>""", unsafe_allow_html=True)
     else:
@@ -170,6 +187,23 @@ with st.sidebar:
             --secondary-background-color: #ffffff !important;
             --text-color: #0f172a !important;
             --primary-color: #3b82f6 !important;
+            --header-qa-bg1: #f0fdf4 !important;
+            --header-qa-bg2: #dcfce7 !important;
+            --header-qa-border: #bbf7d0 !important;
+            --header-qa-title: #166534 !important;
+            --header-qa-text: #15803d !important;
+            
+            --header-agent-bg1: #eff6ff !important;
+            --header-agent-bg2: #dbeafe !important;
+            --header-agent-border: #bfdbfe !important;
+            --header-agent-title: #1e3a8a !important;
+            --header-agent-text: #3b82f6 !important;
+            
+            --header-research-bg1: #fef3c7 !important;
+            --header-research-bg2: #fef08a !important;
+            --header-research-border: #fbbf24 !important;
+            --header-research-title: #92400e !important;
+            --header-research-text: #a16207 !important;
         }
         </style>""", unsafe_allow_html=True)
         
@@ -204,7 +238,7 @@ with st.sidebar:
     if st.button("Run Evaluation", use_container_width=True, type="secondary"):
         with st.spinner("Running evaluation (~2–3 min)…"):
             proc = subprocess.run(
-                [sys.executable, str(Path(__file__).parent / "harshilmodh_fp_evaluate.py")],
+                [sys.executable, str(Path(__file__).parent / "fp_evaluate.py")],
                 capture_output=True, text=True
             )
         if proc.returncode == 0:
@@ -241,9 +275,9 @@ tab_qa, tab_agent, tab_research, tab_history, tab_eval = st.tabs(["💬 Q&A", "�
 with tab_qa:
     st.markdown(
         """
-        <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); padding: 1.5rem; border-radius: 12px; border: 1px solid #bbf7d0; margin-bottom: 1.5rem;">
-            <h3 style="margin-top: 0; color: #166534;">📊 Financial Earnings Call Analyzer</h3>
-            <p style="margin-bottom: 0; color: #15803d; font-size: 0.95rem;">
+        <div class="header-card qa-header">
+            <h3>📊 Financial Earnings Call Analyzer</h3>
+            <p>
                 Ask questions about <strong>Apple (AAPL)</strong>, <strong>Microsoft (MSFT)</strong>, or <strong>Alphabet (GOOGL)</strong> 
                 SEC filings (10-K annual reports & 10-Q quarterly reports). 
                 The system retrieves the most relevant passages and synthesizes a cited answer.
@@ -382,9 +416,9 @@ def _render_agent_message(msg: dict):
 with tab_agent:
     st.markdown(
         """
-        <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); padding: 1.5rem; border-radius: 12px; border: 1px solid #bfdbfe; margin-bottom: 1.5rem;">
-            <h3 style="margin-top: 0; color: #1e3a8a;">🤖 Agentic Financial Analyst</h3>
-            <p style="margin-bottom: 0; color: #3b82f6; font-size: 0.95rem;">
+        <div class="header-card agent-header">
+            <h3>🤖 Agentic Financial Analyst</h3>
+            <p>
                 An autonomous AI agent that <strong>decomposes your question</strong>, searches SEC filings, 
                 performs calculations, builds comparison tables, and generates charts — all automatically. 
                 Watch the agent's reasoning process in real time.
@@ -481,16 +515,16 @@ with tab_agent:
             )
 
     elif agent_question and not _AGENT_RUN:
-        st.error("Agent module not found. Ensure `harshilmodh_fp_agent.py` is present.", icon="❌")
+        st.error("Agent module not found. Ensure `fp_agent.py` is present.", icon="❌")
 
 # ── Tab 3: Deep Research ──────────────────────────────────────────────────────
 
 with tab_research:
     st.markdown(
         """
-        <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 1.5rem; border-radius: 12px; border: 1px solid #fbbf24; margin-bottom: 1.5rem;">
-            <h3 style="margin-top: 0; color: #92400e;">📑 Multi-Agent Deep Research</h3>
-            <p style="margin-bottom: 0; color: #a16207; font-size: 0.95rem;">
+        <div class="header-card research-header">
+            <h3>📑 Multi-Agent Deep Research</h3>
+            <p>
                 Enter a research topic and let <strong>three specialized agents</strong> collaborate:<br>
                 🗺️ <strong>Planner</strong> → decomposes into research questions &nbsp;|&nbsp;
                 🔍 <strong>Researcher</strong> → gathers data from filings &nbsp;|&nbsp;
@@ -583,7 +617,7 @@ with tab_research:
                     st.error(event["content"])
 
     elif run_research and not _DEEP_RESEARCH:
-        st.error("Research module not found. Ensure `harshilmodh_fp_research.py` is present.")
+        st.error("Research module not found. Ensure `fp_research.py` is present.")
 
     # Show saved report on reruns
     if not run_research and st.session_state.research_report:
@@ -624,7 +658,7 @@ with tab_eval:
     st.subheader("Evaluation Metrics")
     st.markdown(
         "Run the evaluation from the sidebar **Run Evaluation** button, "
-        "or via `python harshilmodh_fp_evaluate.py`. "
+        "or via `python fp_evaluate.py`. "
         "Results are read from `eval_results.json`."
     )
 

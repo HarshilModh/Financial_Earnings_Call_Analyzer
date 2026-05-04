@@ -141,15 +141,15 @@ Data source: SEC EDGAR (`data.sec.gov`) — publicly available, no licensing res
 ```
 harshilmodh_final_project/
 │
-├── harshilmodh_fp_config.py      # Phase 1: Shared configuration & constants
-├── harshilmodh_fp_download.py    # Phase 2a: SEC EDGAR filing downloader
-├── harshilmodh_fp_build_kb.py    # Phase 2b: Parse, chunk, embed → ChromaDB
-├── harshilmodh_fp_rag.py         # Phase 3: RAG engine (retrieve + generate)
-├── harshilmodh_fp_evaluate.py    # Phase 4: Evaluation harness (4 metrics)
-├── harshilmodh_fp_app.py         # Phase 5: Streamlit UI dashboard
-├── harshilmodh_fp_agent.py       # Phase 6: Agentic analyst (tool-use loop)
-├── harshilmodh_fp_mcp_server.py  # Phase 7: FastMCP server
-├── harshilmodh_fp_research.py    # Phase 8: Multi-agent deep research pipeline
+├── fp_config.py      # Phase 1: Shared configuration & constants
+├── fp_download.py    # Phase 2a: SEC EDGAR filing downloader
+├── fp_build_kb.py    # Phase 2b: Parse, chunk, embed → ChromaDB
+├── fp_rag.py         # Phase 3: RAG engine (retrieve + generate)
+├── fp_evaluate.py    # Phase 4: Evaluation harness (4 metrics)
+├── fp_app.py         # Phase 5: Streamlit UI dashboard
+├── fp_agent.py       # Phase 6: Agentic analyst (tool-use loop)
+├── fp_mcp_server.py  # Phase 7: FastMCP server
+├── fp_research.py    # Phase 8: Multi-agent deep research pipeline
 │
 ├── requirements.txt              # Python dependencies
 ├── styles.css                    # Custom CSS design system for the UI
@@ -220,16 +220,16 @@ Run each step in order. Each phase is independently testable.
 
 ```bash
 # Step 1 — Download SEC filings (~12 documents, may take a few minutes)
-python harshilmodh_fp_download.py
+python fp_download.py
 
 # Step 2 — Parse, chunk, and index into ChromaDB
-python harshilmodh_fp_build_kb.py
+python fp_build_kb.py
 
 # Step 3 — (Optional) Run evaluation against the golden Q&A set
-python harshilmodh_fp_evaluate.py
+python fp_evaluate.py
 
 # Step 4 — Launch the Streamlit UI
-streamlit run harshilmodh_fp_app.py
+streamlit run fp_app.py
 ```
 
 ### Pipeline Flow
@@ -255,7 +255,7 @@ download.py → build_kb.py → [evaluate.py] → app.py
 
 ### Phase 1 — Config & Requirements
 
-**File:** `harshilmodh_fp_config.py`
+**File:** `fp_config.py`
 
 All shared constants live here. Every other script imports from this module.
 
@@ -273,7 +273,7 @@ All shared constants live here. Every other script imports from this module.
 
 ### Phase 2 — Data Ingestion & Knowledge Base
 
-#### `harshilmodh_fp_download.py`
+#### `fp_download.py`
 
 Downloads SEC filings from EDGAR for all three companies.
 
@@ -283,10 +283,10 @@ Downloads SEC filings from EDGAR for all three companies.
 - Respects SEC EDGAR rate limits (`time.sleep(0.5)` between requests)
 
 ```bash
-python harshilmodh_fp_download.py
+python fp_download.py
 ```
 
-#### `harshilmodh_fp_build_kb.py`
+#### `fp_build_kb.py`
 
 Parses all downloaded filings, chunks, and stores in ChromaDB.
 
@@ -312,20 +312,20 @@ Parses all downloaded filings, chunks, and stores in ChromaDB.
 ```
 
 ```bash
-python harshilmodh_fp_build_kb.py
+python fp_build_kb.py
 ```
 
 ---
 
 ### Phase 3 — RAG Engine
 
-**File:** `harshilmodh_fp_rag.py`
+**File:** `fp_rag.py`
 
 Core retrieval-augmented generation module. Imported by the evaluation harness and the Streamlit UI.
 
 **Public API:**
 ```python
-from harshilmodh_fp_rag import query
+from fp_rag import query
 
 result = query(
     question="What was Apple's total revenue in FY2024?",
@@ -355,7 +355,7 @@ result = query(
 
 ### Phase 4 — Evaluation Harness
 
-**Files:** `harshilmodh_fp_evaluate.py`, `golden_qa.json`
+**Files:** `fp_evaluate.py`, `golden_qa.json`
 
 #### Golden Q&A Set (`golden_qa.json`)
 
@@ -373,7 +373,7 @@ result = query(
 | 4 | **LLM-as-Judge Score** | GPT rates answer 1–5 for correctness + completeness | ≥ 4.0/5.0 |
 
 ```bash
-python harshilmodh_fp_evaluate.py
+python fp_evaluate.py
 # Output: prints summary table + saves eval_results.json
 ```
 
@@ -381,10 +381,10 @@ python harshilmodh_fp_evaluate.py
 
 ### Phase 5 — Streamlit UI
 
-**File:** `harshilmodh_fp_app.py`
+**File:** `fp_app.py`
 
 ```bash
-streamlit run harshilmodh_fp_app.py
+streamlit run fp_app.py
 ```
 
 **Layout:**
@@ -399,7 +399,7 @@ streamlit run harshilmodh_fp_app.py
 
 ### Phase 6 — Agentic Financial Analyst
 
-**File:** `harshilmodh_fp_agent.py`
+**File:** `fp_agent.py`
 
 An autonomous agent that uses **OpenAI function calling** to decompose complex questions into tool calls.
 
@@ -423,16 +423,16 @@ An autonomous agent that uses **OpenAI function calling** to decompose complex q
 
 ### Phase 7 — MCP Server
 
-**File:** `harshilmodh_fp_mcp_server.py`
+**File:** `fp_mcp_server.py`
 
 Exposes the SEC filings knowledge base as **MCP (Model Context Protocol)** tools for any MCP-compatible client (e.g., Claude Desktop).
 
 ```bash
 # Run in stdio mode (default)
-python harshilmodh_fp_mcp_server.py
+python fp_mcp_server.py
 
 # Run in SSE mode (for web clients)
-python harshilmodh_fp_mcp_server.py --sse
+python fp_mcp_server.py --sse
 ```
 
 **Exposed Tools:**
@@ -449,7 +449,7 @@ python harshilmodh_fp_mcp_server.py --sse
 
 ### Phase 8 — Multi-Agent Deep Research
 
-**File:** `harshilmodh_fp_research.py`
+**File:** `fp_research.py`
 
 Three-agent pipeline for autonomous financial research:
 
@@ -462,7 +462,7 @@ Three-agent pipeline for autonomous financial research:
 **Report structure:** Executive Summary → Key Findings → Data Highlights → Risk Factors → Conclusion
 
 ```python
-from harshilmodh_fp_research import run_deep_research
+from fp_research import run_deep_research
 
 for event in run_deep_research(topic="Compare Apple and Microsoft's cloud revenue"):
     print(event)
@@ -532,18 +532,18 @@ The UI uses a custom CSS design system built on:
 
 ## File Naming Convention
 
-All project files use the prefix `harshilmodh_fp_` (fp = final project):
+All project files use the prefix `fp_` (fp = final project):
 
 ```
-harshilmodh_fp_config.py
-harshilmodh_fp_download.py
-harshilmodh_fp_build_kb.py
-harshilmodh_fp_rag.py
-harshilmodh_fp_evaluate.py
-harshilmodh_fp_app.py
-harshilmodh_fp_agent.py
-harshilmodh_fp_mcp_server.py
-harshilmodh_fp_research.py
+fp_config.py
+fp_download.py
+fp_build_kb.py
+fp_rag.py
+fp_evaluate.py
+fp_app.py
+fp_agent.py
+fp_mcp_server.py
+fp_research.py
 ```
 
 ---
@@ -555,11 +555,11 @@ harshilmodh_fp_research.py
 | Issue | Solution |
 |-------|----------|
 | `Fatal: OPENAI_API_KEY not found` | Ensure `.env` file exists in the **parent directory** (`FE 524/`) with `OPENAI_API_KEY=sk-...` |
-| `ChromaDB not found` | Run `python harshilmodh_fp_build_kb.py` to build the knowledge base |
-| `No accession directories found` | Run `python harshilmodh_fp_download.py` first to download SEC filings |
-| `RAG engine not found` (in UI) | Ensure `harshilmodh_fp_rag.py` is in the same directory as the app |
-| `Agent module not found` (in UI) | Ensure `harshilmodh_fp_agent.py` is present |
-| `Research module not found` | Ensure `harshilmodh_fp_research.py` is present |
+| `ChromaDB not found` | Run `python fp_build_kb.py` to build the knowledge base |
+| `No accession directories found` | Run `python fp_download.py` first to download SEC filings |
+| `RAG engine not found` (in UI) | Ensure `fp_rag.py` is in the same directory as the app |
+| `Agent module not found` (in UI) | Ensure `fp_agent.py` is present |
+| `Research module not found` | Ensure `fp_research.py` is present |
 | Slow embedding on first run | The `all-MiniLM-L6-v2` model downloads on first use (~80 MB). Subsequent runs use the cached model. |
 | SEC EDGAR rate limiting | The downloader includes `time.sleep(0.5)` between requests. If errors persist, wait a few minutes and retry. |
 | `ModuleNotFoundError` | Run `pip install -r requirements.txt` inside the virtual environment |

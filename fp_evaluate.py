@@ -10,7 +10,7 @@
 #   4. LLM-as-Judge Score  — GPT-4o rates answer 1–5 for correctness + completeness
 #
 # Usage:
-#   python harshilmodh_fp_evaluate.py
+#   python fp_evaluate.py
 #
 # Output: prints summary table + saves eval_results.json
 
@@ -22,13 +22,13 @@ from pathlib import Path
 
 from openai import OpenAI
 
-from harshilmodh_fp_config import (
+from fp_config import (
     EVAL_OUT_PATH,
     GOLDEN_QA_PATH,
     OPENAI_API_KEY,
     OPENAI_JUDGE_MODEL,
 )
-from harshilmodh_fp_rag import query
+from fp_rag import query
 
 # ── Judge client ──────────────────────────────────────────────────────────────
 

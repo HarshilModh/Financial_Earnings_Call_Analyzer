@@ -17,12 +17,12 @@ The system retrieves relevant document chunks and synthesizes cited, accurate an
 
 ## File Naming Convention
 
-All project files use the prefix `harshilmodh_fp_` (fp = final project). Example:
-- `harshilmodh_fp_download.py`
-- `harshilmodh_fp_build_kb.py`
-- `harshilmodh_fp_rag.py`
-- `harshilmodh_fp_evaluate.py`
-- `harshilmodh_fp_app.py`
+All project files use the prefix `fp_` (fp = final project). Example:
+- `fp_download.py`
+- `fp_build_kb.py`
+- `fp_rag.py`
+- `fp_evaluate.py`
+- `fp_app.py`
 
 ---
 
@@ -94,7 +94,7 @@ Every chunk stored in ChromaDB must carry this metadata:
 ## Phases
 
 ### Phase 1 — Config & Requirements
-**File:** `harshilmodh_fp_config.py`, `requirements.txt`
+**File:** `fp_config.py`, `requirements.txt`
 
 All shared constants live here. Every other script imports from `config.py`.
 
@@ -119,7 +119,7 @@ Constants to define:
 ---
 
 ### Phase 2 — Data Ingestion & Chunking Pipeline
-**File:** `harshilmodh_fp_download.py`
+**File:** `fp_download.py`
 
 Download SEC EDGAR filings using `sec-edgar-downloader`.
 - For each ticker in `COMPANIES`: download 1 × 10-K and 3 × 10-Q
@@ -129,7 +129,7 @@ Download SEC EDGAR filings using `sec-edgar-downloader`.
 - Skip tickers that already have files (idempotent re-runs)
 - Respect SEC EDGAR rate limits: add `time.sleep(0.5)` between requests
 
-**File:** `harshilmodh_fp_build_kb.py`
+**File:** `fp_build_kb.py`
 
 Parse all downloaded filings, chunk, and store in ChromaDB. Run once after download.
 
@@ -149,7 +149,7 @@ Steps:
 ---
 
 ### Phase 3 — RAG Prompt Design & OpenAI API Integration
-**File:** `harshilmodh_fp_rag.py`
+**File:** `fp_rag.py`
 
 Core RAG module — imported by both the evaluation harness and the Streamlit UI.
 
@@ -182,7 +182,7 @@ System prompt requirements (Harshil's role — RAG Prompt Design):
 ---
 
 ### Phase 4 — Evaluation Harness
-**Files:** `harshilmodh_fp_evaluate.py`, `golden_qa.json`
+**Files:** `fp_evaluate.py`, `golden_qa.json`
 
 **`golden_qa.json`** — 25 manually curated Q&A pairs:
 - 8–9 questions per company (AAPL, MSFT, GOOGL)
@@ -199,7 +199,7 @@ System prompt requirements (Harshil's role — RAG Prompt Design):
   }
   ```
 
-**`harshilmodh_fp_evaluate.py`** — runs four metrics:
+**`fp_evaluate.py`** — runs four metrics:
 
 1. **Factual Accuracy** — LLM-as-judge: does the RAG answer match ground truth? Binary 0/1 per question.
 2. **Retrieval Precision** — was `source_company` + `source_filing` present in the top-3 retrieved chunks? Binary 0/1.
@@ -213,9 +213,9 @@ Output: prints a summary table and saves `eval_results.json` with per-question d
 ---
 
 ### Phase 5 — Streamlit UI
-**File:** `harshilmodh_fp_app.py`
+**File:** `fp_app.py`
 
-Run with: `streamlit run harshilmodh_fp_app.py`
+Run with: `streamlit run fp_app.py`
 
 Layout:
 - **Sidebar:**
@@ -236,7 +236,7 @@ Layout:
 ---
 
 ### Phase 6 — Agentic Financial Analyst (Tool-Use Loop)
-**File:** `harshilmodh_fp_agent.py`
+**File:** `fp_agent.py`
 
 An autonomous agent that uses OpenAI function calling to decompose complex questions
 into tool calls, iterate until it has sufficient information, and produce cited answers.
@@ -285,14 +285,14 @@ Each phase is independently testable before moving to the next.
 pip install -r requirements.txt
 
 # 2. Download SEC filings (~12 documents, may take a few minutes)
-python harshilmodh_fp_download.py
+python fp_download.py
 
 # 3. Parse, chunk, and index into ChromaDB
-python harshilmodh_fp_build_kb.py
+python fp_build_kb.py
 
 # 4. (Optional) Run evaluation against golden Q&A set
-python harshilmodh_fp_evaluate.py
+python fp_evaluate.py
 
 # 5. Launch the Streamlit UI
-streamlit run harshilmodh_fp_app.py
+streamlit run fp_app.py
 ```

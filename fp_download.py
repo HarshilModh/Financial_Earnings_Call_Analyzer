@@ -9,8 +9,8 @@
 # Idempotent: already-downloaded companies/form-types are skipped.
 # SEC ToS requires a User-Agent with company name + email — config provides both.
 #
-# Run once before harshilmodh_fp_build_kb.py:
-#   python harshilmodh_fp_download.py
+# Run once before fp_build_kb.py:
+#   python fp_download.py
 
 import time
 from pathlib import Path
@@ -18,7 +18,7 @@ from pathlib import Path
 from sec_edgar_downloader import Downloader
 from tqdm import tqdm
 
-from harshilmodh_fp_config import (
+from fp_config import (
     COMPANIES,
     DATA_DIR,
     FILING_AFTER,

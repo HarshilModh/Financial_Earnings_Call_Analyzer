@@ -7,8 +7,8 @@
 # MCP-compatible client (Claude, custom agents, etc.) can query it.
 #
 # Run:
-#   python harshilmodh_fp_mcp_server.py          (stdio mode)
-#   python harshilmodh_fp_mcp_server.py --sse     (SSE mode for web)
+#   python fp_mcp_server.py          (stdio mode)
+#   python fp_mcp_server.py --sse     (SSE mode for web)
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ import chromadb
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 from fastmcp import FastMCP
 
-from harshilmodh_fp_config import (
+from fp_config import (
     CHROMA_COLLECTION,
     CHROMA_DIR,
     COMPANIES,
