@@ -1,0 +1,39 @@
+# FE 524 Final Project — Financial Earnings Call Analyzer
+# Python 3.11+
+
+# SEC EDGAR
+sec-edgar-downloader>=5.0.4
+
+# PDF / HTML parsing
+pdfplumber>=0.10.0
+pymupdf>=1.23.0
+beautifulsoup4>=4.12.0
+lxml>=5.0.0
+
+# Chunking
+langchain-text-splitters>=0.2.0
+
+# Embeddings
+sentence-transformers>=3.0.0
+
+# Vector DB
+chromadb>=0.5.0
+
+# OpenAI
+openai>=1.30.0
+
+# Environment
+python-dotenv>=1.0.0
+
+# Streamlit UI + Agent charting
+streamlit>=1.35.0
+plotly>=5.20.0
+
+# MCP Server
+fastmcp>=2.0.0
+
+# Utilities
+requests>=2.31.0
+numpy>=1.26.0
+pandas>=2.2.0
+tqdm>=4.66.0

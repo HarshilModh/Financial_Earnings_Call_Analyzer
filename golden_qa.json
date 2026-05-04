@@ -1,0 +1,202 @@
+[
+  {
+    "id": "q01",
+    "question": "What was Apple's iPhone net sales in fiscal year 2024, and how did it compare to fiscal year 2023?",
+    "ground_truth": "Apple's iPhone net sales were $201,183 million in fiscal year 2024, compared to $200,583 million in 2023, representing approximately 0% year-over-year growth (flat).",
+    "source_company": "AAPL",
+    "source_filing": "10-K",
+    "source_section": "General"
+  },
+  {
+    "id": "q02",
+    "question": "What were Apple's Mac net sales for fiscal year 2024 and how did they change year-over-year?",
+    "ground_truth": "Apple's Mac net sales were $29,984 million in fiscal year 2024, a 2% increase compared to $29,357 million in fiscal year 2023.",
+    "source_company": "AAPL",
+    "source_filing": "10-K",
+    "source_section": "General"
+  },
+  {
+    "id": "q03",
+    "question": "How did Apple's iPad net sales perform in fiscal year 2024 compared to 2023?",
+    "ground_truth": "Apple's iPad net sales were $26,694 million in fiscal year 2024, a 6% decline from $28,300 million in fiscal year 2023.",
+    "source_company": "AAPL",
+    "source_filing": "10-K",
+    "source_section": "General"
+  },
+  {
+    "id": "q04",
+    "question": "What were Apple's Wearables, Home and Accessories net sales in fiscal year 2024?",
+    "ground_truth": "Apple's Wearables, Home and Accessories net sales were $37,005 million in fiscal year 2024, a 7% decrease compared to $39,845 million in fiscal year 2023.",
+    "source_company": "AAPL",
+    "source_filing": "10-K",
+    "source_section": "General"
+  },
+  {
+    "id": "q05",
+    "question": "What was Apple's Services gross margin in fiscal year 2024, and how did it compare to 2023?",
+    "ground_truth": "Apple's Services gross margin was $71,050 million in fiscal year 2024, up from $60,345 million in fiscal year 2023. Services gross margin percentage also increased due to a different Services mix.",
+    "source_company": "AAPL",
+    "source_filing": "10-K",
+    "source_section": "General"
+  },
+  {
+    "id": "q06",
+    "question": "What was Apple's Products gross margin in fiscal year 2024?",
+    "ground_truth": "Apple's Products gross margin was $109,633 million in fiscal year 2024, compared to $108,803 million in fiscal year 2023.",
+    "source_company": "AAPL",
+    "source_filing": "10-K",
+    "source_section": "General"
+  },
+  {
+    "id": "q07",
+    "question": "What were Apple's Americas segment net sales in fiscal year 2024?",
+    "ground_truth": "Apple's Americas segment net sales were $167,045 million in fiscal year 2024, compared to $162,560 million in fiscal year 2023.",
+    "source_company": "AAPL",
+    "source_filing": "10-K",
+    "source_section": "General"
+  },
+  {
+    "id": "q08",
+    "question": "What were the primary drivers of Apple's Services net sales growth in fiscal year 2024?",
+    "ground_truth": "Apple's Services net sales growth in fiscal year 2024 was driven primarily by higher net sales from advertising, the App Store, and cloud services.",
+    "source_company": "AAPL",
+    "source_filing": "10-K",
+    "source_section": "General"
+  },
+  {
+    "id": "q09",
+    "question": "What risk does Apple identify related to its dependence on third-party software developers?",
+    "ground_truth": "Apple states that customer decisions to purchase its hardware depend in part on the availability of third-party software applications and services. There is no assurance that third-party developers will continue to develop and maintain software applications for Apple's platforms, which could adversely affect the Company's performance.",
+    "source_company": "AAPL",
+    "source_filing": "10-K",
+    "source_section": "General"
+  },
+  {
+    "id": "q10",
+    "question": "By how much did Microsoft's gross margin increase in fiscal year 2024, and what drove the growth?",
+    "ground_truth": "Microsoft's gross margin increased $25.0 billion or 17% in fiscal year 2024, driven by growth across each of its segments.",
+    "source_company": "MSFT",
+    "source_filing": "10-K",
+    "source_section": "Item 7 - MD&A"
+  },
+  {
+    "id": "q11",
+    "question": "How did Microsoft's cost of revenue change in fiscal year 2024 and what were the key drivers?",
+    "ground_truth": "Microsoft's cost of revenue increased $8.3 billion or 13% in fiscal year 2024, driven by growth in Microsoft Cloud and Gaming, offset in part by a decline in Devices.",
+    "source_company": "MSFT",
+    "source_filing": "10-K",
+    "source_section": "Item 7 - MD&A"
+  },
+  {
+    "id": "q12",
+    "question": "What was Microsoft's gross margin percentage trend in fiscal year 2024?",
+    "ground_truth": "Microsoft's gross margin percentage increased slightly in fiscal year 2024. Excluding the impact of the change in accounting estimate for useful lives of server and network equipment, gross margin percentage increased 2 points, driven by improvement in More Personal Computing.",
+    "source_company": "MSFT",
+    "source_filing": "10-K",
+    "source_section": "Item 7 - MD&A"
+  },
+  {
+    "id": "q13",
+    "question": "By how much did Microsoft's Devices revenue change in fiscal year 2024?",
+    "ground_truth": "Microsoft's Devices revenue decreased $815 million or 15% in fiscal year 2024.",
+    "source_company": "MSFT",
+    "source_filing": "10-K",
+    "source_section": "Item 7 - MD&A"
+  },
+  {
+    "id": "q14",
+    "question": "What are Microsoft's primary sources of revenue?",
+    "ground_truth": "Microsoft generates revenue by offering cloud-based solutions, content, and other services; licensing and supporting software products; delivering online advertising; and designing and selling devices.",
+    "source_company": "MSFT",
+    "source_filing": "10-K",
+    "source_section": "General"
+  },
+  {
+    "id": "q15",
+    "question": "What were the key drivers of Microsoft's More Personal Computing segment performance in fiscal year 2024?",
+    "ground_truth": "In Microsoft's More Personal Computing segment, operating income increased $2.9 billion or 17%. Gross margin increased $6.8 billion or 23%, driven by growth in Gaming with 10 points of net impact from the Activision Blizzard acquisition, as well as growth in Windows. Operating expenses increased $3.9 billion or 31%, driven by Gaming with 34 points of growth from Activision Blizzard.",
+    "source_company": "MSFT",
+    "source_filing": "10-K",
+    "source_section": "Item 7 - MD&A"
+  },
+  {
+    "id": "q16",
+    "question": "What updates did Microsoft make to its commercial metrics in the first quarter of fiscal year 2024?",
+    "ground_truth": "In Q1 FY2024, Microsoft updated its Microsoft Cloud revenue metric to include revenue growth, and expanded its Microsoft 365 Consumer subscribers metric to include Microsoft 365 Basic subscribers, aligning with how the company manages its business.",
+    "source_company": "MSFT",
+    "source_filing": "10-K",
+    "source_section": "Item 7 - MD&A"
+  },
+  {
+    "id": "q17",
+    "question": "What are the primary expenses Microsoft incurs in running its business?",
+    "ground_truth": "Microsoft's most significant expenses are related to compensating employees, supporting and investing in cloud-based services including datacenter operations, and designing, manufacturing, marketing, and selling its products and devices.",
+    "source_company": "MSFT",
+    "source_filing": "10-K",
+    "source_section": "General"
+  },
+  {
+    "id": "q18",
+    "question": "What was Alphabet's total revenues in fiscal year 2024?",
+    "ground_truth": "Alphabet's total revenues were $350,018 million in fiscal year 2024.",
+    "source_company": "GOOGL",
+    "source_filing": "10-K",
+    "source_section": "General"
+  },
+  {
+    "id": "q19",
+    "question": "How did Alphabet's total revenues change from 2023 to 2024?",
+    "ground_truth": "Alphabet's total revenues grew from $307,394 million in 2023 to $350,018 million in 2024, an increase of approximately $42.6 billion or roughly 14%.",
+    "source_company": "GOOGL",
+    "source_filing": "10-K",
+    "source_section": "General"
+  },
+  {
+    "id": "q20",
+    "question": "What was Alphabet's total income from operations in fiscal year 2024?",
+    "ground_truth": "Alphabet's total income from operations was $112,390 million in fiscal year 2024, compared to $84,293 million in fiscal year 2023.",
+    "source_company": "GOOGL",
+    "source_filing": "10-K",
+    "source_section": "General"
+  },
+  {
+    "id": "q21",
+    "question": "By how much did Google Search and other revenues grow from 2023 to 2024?",
+    "ground_truth": "Google Search and other revenues increased $23.1 billion from 2023 to 2024, driven by increases in search queries resulting from growth in user adoption and usage on mobile devices.",
+    "source_company": "GOOGL",
+    "source_filing": "10-K",
+    "source_section": "General"
+  },
+  {
+    "id": "q22",
+    "question": "What was Alphabet's operating cash flow in fiscal year 2024?",
+    "ground_truth": "Alphabet's operating cash flow was $125.3 billion in fiscal year 2024.",
+    "source_company": "GOOGL",
+    "source_filing": "10-K",
+    "source_section": "General"
+  },
+  {
+    "id": "q23",
+    "question": "How did Alphabet's employee severance charges change from 2023 to 2024?",
+    "ground_truth": "Alphabet's employee severance and related charges were $1.0 billion in fiscal year 2024, a decrease of $1.1 billion compared to fiscal year 2023.",
+    "source_company": "GOOGL",
+    "source_filing": "10-K",
+    "source_section": "General"
+  },
+  {
+    "id": "q24",
+    "question": "What are the two main components of Google Cloud revenues?",
+    "ground_truth": "Google Cloud revenues are comprised of two main components: (1) Google Cloud Platform, which generates consumption-based fees and subscriptions for infrastructure, platform, and other services including AI offerings, cybersecurity, and data analytics; and (2) Google Workspace, which includes subscriptions for cloud-based communication and collaboration tools for enterprise customers.",
+    "source_company": "GOOGL",
+    "source_filing": "10-K",
+    "source_section": "General"
+  },
+  {
+    "id": "q25",
+    "question": "Comparing Alphabet and Microsoft, which company reported higher total income from operations in their most recent completed fiscal year, and by approximately how much?",
+    "ground_truth": "Alphabet reported total income from operations of $112,390 million for fiscal year 2024 (ended December 31, 2024). Microsoft reported a gross margin increase of $25.0 billion (17%) for fiscal year 2024 (ended June 30, 2024). Based on the available data, Alphabet's $112.4 billion operating income in FY2024 was significantly larger than Microsoft's reported operating income figures for the same period.",
+    "source_company": "GOOGL",
+    "source_filing": "10-K",
+    "source_section": "General"
+  }
+]
