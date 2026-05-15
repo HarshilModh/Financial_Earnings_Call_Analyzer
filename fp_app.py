@@ -1,17 +1,4 @@
-# Python 3.11+
-# Stevens Username: harshilmodh
-#
-# Phase 5 + 6 — Streamlit UI for the Financial Earnings Call Analyzer.
-#
-# Layout:
-#   Sidebar  — company / filing-type filters, top-k slider, "Run Evaluation" button, KB stats
-#   Tab 1    — Q&A: question input, answer panel, cited sources
-#   Tab 2    — 🤖 Agent: agentic AI analyst with tool use and chat interface
-#   Tab 3    — History: last 5 Q&A pairs
-#   Tab 4    — Evaluation: metrics table from eval_results.json
-#
-# Run:
-#   streamlit run fp_app.py
+# Streamlit UI — run with: streamlit run fp_app.py
 
 from __future__ import annotations
 
@@ -36,7 +23,6 @@ from fp_config import (
     TOP_K,
 )
 
-# ── Page config ───────────────────────────────────────────────────────────────
 
 st.set_page_config(
     page_title="Financial Earnings Analyzer",
@@ -45,12 +31,10 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── Custom CSS / Design System ──────────────────────────────────────────────────
 
 with open("styles.css") as f:
     st.markdown(f"<style>\n{f.read()}\n</style>", unsafe_allow_html=True)
 
-# ── ChromaDB connection (cached) ──────────────────────────────────────────────
 
 @st.cache_resource(show_spinner="Loading knowledge base…")
 def _get_collection():
@@ -72,7 +56,6 @@ def _kb_stats(collection) -> dict[str, int]:
     return stats
 
 
-# ── RAG backend ───────────────────────────────────────────────────────────────
 
 @st.cache_resource(show_spinner=False)
 def _load_rag():
@@ -85,7 +68,6 @@ def _load_rag():
 
 _RAG_QUERY = _load_rag()
 
-# ── Agent backend ─────────────────────────────────────────────────────────────
 
 @st.cache_resource(show_spinner=False)
 def _load_agent():
@@ -98,7 +80,6 @@ def _load_agent():
 
 _AGENT_RUN = _load_agent()
 
-# ── Research backend ──────────────────────────────────────────────────────────
 
 @st.cache_resource(show_spinner=False)
 def _load_research():
@@ -127,7 +108,6 @@ def run_query(question: str, company_filter, filing_filter, top_k: int) -> dict:
     }
 
 
-# ── Session state ─────────────────────────────────────────────────────────────
 
 if "history" not in st.session_state:
     st.session_state.history: list[dict] = []
@@ -135,7 +115,6 @@ if "history" not in st.session_state:
 if "last_result" not in st.session_state:
     st.session_state.last_result = None
 
-# Agent chat state
 if "agent_messages" not in st.session_state:
     st.session_state.agent_messages: list[dict] = []
 
@@ -146,67 +125,34 @@ if "research_report" not in st.session_state:
     st.session_state.research_report = None
 
 
-# ── Sidebar ───────────────────────────────────────────────────────────────────
+
+st.markdown("""<style>
+:root, [data-testid="stAppViewContainer"] {
+    --background-color: #f8fafc !important;
+    --secondary-background-color: #ffffff !important;
+    --text-color: #0f172a !important;
+    --primary-color: #3b82f6 !important;
+    --header-qa-bg1: #f0fdf4 !important;
+    --header-qa-bg2: #dcfce7 !important;
+    --header-qa-border: #bbf7d0 !important;
+    --header-qa-title: #166534 !important;
+    --header-qa-text: #15803d !important;
+    --header-agent-bg1: #eff6ff !important;
+    --header-agent-bg2: #dbeafe !important;
+    --header-agent-border: #bfdbfe !important;
+    --header-agent-title: #1e3a8a !important;
+    --header-agent-text: #3b82f6 !important;
+    --header-research-bg1: #fef3c7 !important;
+    --header-research-bg2: #fef08a !important;
+    --header-research-border: #fbbf24 !important;
+    --header-research-title: #92400e !important;
+    --header-research-text: #a16207 !important;
+}
+</style>""", unsafe_allow_html=True)
 
 with st.sidebar:
     st.markdown("<h2 style='text-align: center; margin-bottom: 0;'>📊 Financial Analyzer</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #64748b; font-size: 0.9rem;'>FE 524 — harshilmodh</p>", unsafe_allow_html=True)
-    st.markdown("---")
-    
-    theme_mode = st.radio("Theme", ["Light", "Dark"], index=0, horizontal=True, label_visibility="collapsed")
-    if theme_mode == "Dark":
-        st.markdown("""<style>
-        :root, [data-testid="stAppViewContainer"] {
-            --background-color: #09090b !important;
-            --secondary-background-color: #18181b !important;
-            --text-color: #f8fafc !important;
-            --primary-color: #6366f1 !important;
-            --header-qa-bg1: #064e3b !important;
-            --header-qa-bg2: #022c22 !important;
-            --header-qa-border: #047857 !important;
-            --header-qa-title: #34d399 !important;
-            --header-qa-text: #a7f3d0 !important;
-            
-            --header-agent-bg1: #1e3a8a !important;
-            --header-agent-bg2: #172554 !important;
-            --header-agent-border: #1d4ed8 !important;
-            --header-agent-title: #60a5fa !important;
-            --header-agent-text: #bfdbfe !important;
-            
-            --header-research-bg1: #78350f !important;
-            --header-research-bg2: #451a03 !important;
-            --header-research-border: #b45309 !important;
-            --header-research-title: #fbbf24 !important;
-            --header-research-text: #fde68a !important;
-        }
-        </style>""", unsafe_allow_html=True)
-    else:
-        st.markdown("""<style>
-        :root, [data-testid="stAppViewContainer"] {
-            --background-color: #f8fafc !important;
-            --secondary-background-color: #ffffff !important;
-            --text-color: #0f172a !important;
-            --primary-color: #3b82f6 !important;
-            --header-qa-bg1: #f0fdf4 !important;
-            --header-qa-bg2: #dcfce7 !important;
-            --header-qa-border: #bbf7d0 !important;
-            --header-qa-title: #166534 !important;
-            --header-qa-text: #15803d !important;
-            
-            --header-agent-bg1: #eff6ff !important;
-            --header-agent-bg2: #dbeafe !important;
-            --header-agent-border: #bfdbfe !important;
-            --header-agent-title: #1e3a8a !important;
-            --header-agent-text: #3b82f6 !important;
-            
-            --header-research-bg1: #fef3c7 !important;
-            --header-research-bg2: #fef08a !important;
-            --header-research-border: #fbbf24 !important;
-            --header-research-title: #92400e !important;
-            --header-research-text: #a16207 !important;
-        }
-        </style>""", unsafe_allow_html=True)
-        
+    st.markdown("<p style='text-align: center; color: #64748b; font-size: 0.9rem;'>FE 524 — Final Project</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     st.subheader("Company Filter")
@@ -233,7 +179,7 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # Run evaluation button
+
     st.subheader("Evaluation")
     if st.button("Run Evaluation", use_container_width=True, type="secondary"):
         with st.spinner("Running evaluation (~2–3 min)…"):
@@ -248,7 +194,6 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # KB stats
     collection = _get_collection()
     if collection:
         st.subheader("Knowledge Base")
@@ -266,11 +211,9 @@ with st.sidebar:
     st.caption(agent_status)
     st.caption(research_status)
 
-# ── Main tabs ─────────────────────────────────────────────────────────────────
 
 tab_qa, tab_agent, tab_research, tab_history, tab_eval = st.tabs(["💬 Q&A", "🤖 Agent", "📑 Deep Research", "🕑 History", "📈 Evaluation"])
 
-# ── Tab 1: Q&A ────────────────────────────────────────────────────────────────
 
 with tab_qa:
     st.markdown(
@@ -289,13 +232,13 @@ with tab_qa:
 
     with st.expander("💡 Example questions", expanded=False):
         examples = [
-            "What were Apple's iPhone net sales in fiscal year 2024?",
-            "How did Apple's gross margin change between Products and Services in FY2024?",
-            "What risk factors does Microsoft identify in its FY2024 10-K?",
-            "What drove Google Search & other revenue growth in 2024?",
-            "Compare the operating income growth of Apple and Alphabet in their most recent fiscal year.",
-            "What are the components of Google Cloud revenues?",
-            "What did Microsoft say about Activision Blizzard's impact on its financials?",
+            "What were Apple's net sales by product category in fiscal year 2024?",
+            "How did Microsoft's cost of revenue and gross margin change in FY2024?",
+            "What was Alphabet's total revenue and operating income in 2024?",
+            "What drove the growth in Google Search & other revenues from 2023 to 2024?",
+            "How did Apple's Services gross margin compare to Products gross margin in FY2024?",
+            "What are the two main components of Google Cloud revenues?",
+            "How did the Activision Blizzard acquisition impact Microsoft's Gaming segment?",
         ]
         for ex in examples:
             if st.button(ex, key=f"ex_{ex}", use_container_width=True):
@@ -327,7 +270,6 @@ with tab_qa:
             entry = {"question": q, **result}
             st.session_state.last_result = entry
             st.session_state.history.insert(0, entry)
-            # Keep only last 5
             st.session_state.history = st.session_state.history[:5]
         else:
             st.warning("Please enter a question.", icon="⚠️")
@@ -359,7 +301,6 @@ with tab_qa:
                     if i < len(sources):
                         st.markdown("<hr>", unsafe_allow_html=True)
 
-# ── Tab 2: Agent ──────────────────────────────────────────────────────────────
 
 _TOOL_ICONS = {
     "search_filings": "🔍",
@@ -379,7 +320,6 @@ def _render_agent_message(msg: dict):
 
     elif role == "assistant":
         with st.chat_message("assistant", avatar="🤖"):
-            # Render events stored in the message
             for event in msg.get("events", []):
                 etype = event["type"]
 
@@ -428,15 +368,25 @@ with tab_agent:
         unsafe_allow_html=True,
     )
 
-    # Render existing conversation
+    with st.expander("💡 Example agent questions", expanded=False):
+        agent_examples = [
+            "Compare Apple and Microsoft's revenue growth rates in their most recent fiscal year. Calculate the percentage change for each.",
+        ]
+        for aex in agent_examples:
+            if st.button(aex, key=f"aex_{aex}", use_container_width=True):
+                st.session_state.agent_prefill = aex
+                st.rerun()
+
     for msg in st.session_state.agent_messages:
         _render_agent_message(msg)
 
-    # Chat input
     agent_question = st.chat_input(
         "Ask the agent anything about AAPL, MSFT, or GOOGL filings…",
         key="agent_chat_input",
     )
+
+    if "agent_prefill" in st.session_state:
+        agent_question = st.session_state.pop("agent_prefill")
 
     col_clear_agent, col_spacer = st.columns([1, 5])
     with col_clear_agent:
@@ -446,18 +396,15 @@ with tab_agent:
             st.rerun()
 
     if agent_question and _AGENT_RUN:
-        # Add user message
         user_msg = {"role": "user", "content": agent_question}
         st.session_state.agent_messages.append(user_msg)
         st.session_state.agent_conversation.append(
             {"role": "user", "content": agent_question}
         )
 
-        # Render user message
         with st.chat_message("user"):
             st.markdown(agent_question)
 
-        # Run agent and stream events
         events: list[dict] = []
         with st.chat_message("assistant", avatar="🤖"):
             for event in _AGENT_RUN(
@@ -499,11 +446,9 @@ with tab_agent:
                 elif etype == "error":
                     st.error(event["content"])
 
-        # Save assistant message with all events
         assistant_msg = {"role": "assistant", "events": events}
         st.session_state.agent_messages.append(assistant_msg)
 
-        # Save the final answer text for conversational context
         final_answer = ""
         for e in events:
             if e["type"] == "answer":
@@ -517,7 +462,6 @@ with tab_agent:
     elif agent_question and not _AGENT_RUN:
         st.error("Agent module not found. Ensure `fp_agent.py` is present.", icon="❌")
 
-# ── Tab 3: Deep Research ──────────────────────────────────────────────────────
 
 with tab_research:
     st.markdown(
@@ -534,6 +478,15 @@ with tab_research:
         """,
         unsafe_allow_html=True,
     )
+
+    with st.expander("💡 Example research topics", expanded=False):
+        research_examples = [
+            "Analyze and compare the cloud and services revenue growth strategies of Apple, Microsoft, and Alphabet in FY2024, including segment-level breakdown and operating margins.",
+        ]
+        for rex in research_examples:
+            if st.button(rex, key=f"rex_{rex}", use_container_width=True):
+                st.session_state.research_topic_input = rex
+                st.rerun()
 
     research_topic = st.text_input(
         "Research Topic",
@@ -619,7 +572,6 @@ with tab_research:
     elif run_research and not _DEEP_RESEARCH:
         st.error("Research module not found. Ensure `fp_research.py` is present.")
 
-    # Show saved report on reruns
     if not run_research and st.session_state.research_report:
         st.markdown("---")
         st.markdown("### 📄 Research Report")
@@ -628,7 +580,6 @@ with tab_research:
             unsafe_allow_html=True,
         )
 
-# ── Tab 4: History ────────────────────────────────────────────────────────────
 
 with tab_history:
     st.subheader("Recent Queries (last 5)")
@@ -652,7 +603,6 @@ with tab_history:
             st.session_state.history = []
             st.rerun()
 
-# ── Tab 4: Evaluation ─────────────────────────────────────────────────────────
 
 with tab_eval:
     st.subheader("Evaluation Metrics")
@@ -668,7 +618,6 @@ with tab_eval:
 
         summary = eval_data.get("summary", {})
 
-        # Summary metric cards
         col1, col2, col3, col4 = st.columns(4)
         metric_cfg = [
             ("factual_accuracy",    "Factual Accuracy",      0.80, "%",   False),
@@ -705,7 +654,6 @@ with tab_eval:
                           "Factual ✓", "Retrieval ✓", "Hallucinated", "Score/5"]
             st.dataframe(df, use_container_width=True, hide_index=True)
 
-        # Per-company breakdown
         if rows:
             st.markdown("---")
             st.subheader("Per-Company Breakdown")

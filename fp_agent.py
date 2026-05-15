@@ -1,16 +1,5 @@
-# Python 3.11+
-# Stevens Username: harshilmodh
-#
-# Phase 6 — Agentic Financial Analyst (Tool-Use Loop)
-#
-# An autonomous agent that decomposes complex financial questions into
-# tool calls (search, calculate, compare, plot) using OpenAI function
-# calling. It iterates until it has enough context to produce a final,
-# cited answer.
-#
-# Public API:
-#   agent_run(question, company_filter, filing_filter, top_k, messages)
-#   → yields AgentEvent dicts in real time for streaming UI updates
+# Agentic analyst — uses OpenAI function calling to search filings,
+# calculate metrics, compare companies, and plot charts.
 
 from __future__ import annotations
 
@@ -36,7 +25,6 @@ from fp_config import (
     TOP_K,
 )
 
-# ── Singletons ────────────────────────────────────────────────────────────────
 
 _chroma_client: Optional[chromadb.PersistentClient] = None
 _collection = None
@@ -61,7 +49,6 @@ def _get_openai() -> OpenAI:
     return _openai_client
 
 
-# ── Tool definitions (OpenAI function-calling schema) ─────────────────────────
 
 TOOLS = [
     {
@@ -216,7 +203,6 @@ TOOLS = [
     },
 ]
 
-# ── Tool implementations ──────────────────────────────────────────────────────
 
 
 def _tool_search_filings(
@@ -242,7 +228,7 @@ def _tool_search_filings(
     elif len(clauses) > 1:
         where = {"$and": clauses}
 
-    # Expand query with financial domain terms
+    # Expand query
     expanded = (
         f"{query} "
         "net sales revenue earnings income table figures millions billions fiscal year"
@@ -268,7 +254,7 @@ def _tool_search_filings(
             f"{meta.get('filing_type')} | {meta.get('period')} | "
             f"{meta.get('section', 'General')}"
         )
-        # Truncate very long chunks for the agent's context window
+        # Truncate long chunks
         text = doc[:2000] if len(doc) > 2000 else doc
         output_parts.append(f"{header}\n{text}")
 
@@ -277,14 +263,14 @@ def _tool_search_filings(
 
 def _tool_calculate(expression: str, label: str = "") -> str:
     """Safely evaluate a math expression."""
-    # Allow only safe math operations
+    # Only allow safe math ops
     allowed_names = {
         "abs": abs, "round": round, "min": min, "max": max,
         "sum": sum, "pow": pow,
         "sqrt": math.sqrt, "log": math.log, "log10": math.log10,
     }
     try:
-        # Sanitize: only allow digits, operators, parens, dots, commas
+        # Sanitize input
         sanitized = re.sub(r"[^0-9+\-*/().,%e ]", "", expression)
         sanitized = sanitized.replace(",", "")  # remove thousand separators
         result = eval(sanitized, {"__builtins__": {}}, allowed_names)  # noqa: S307
@@ -330,7 +316,7 @@ def _tool_plot_chart(
     """Create a Plotly figure dict (serializable). Rendered by the Streamlit UI."""
     fig = go.Figure()
 
-    # Professional color palette
+    # Color palette
     colors = [
         "#2563eb", "#10b981", "#f59e0b", "#ef4444",
         "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16",
@@ -370,11 +356,11 @@ def _tool_plot_chart(
         legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5),
     )
 
-    # Return serialized figure for Streamlit
+    # Return serialized figure
     return json.loads(fig.to_json())
 
 
-# Dispatch table
+# Dispatch
 _TOOL_DISPATCH = {
     "search_filings": _tool_search_filings,
     "calculate": _tool_calculate,
@@ -382,7 +368,6 @@ _TOOL_DISPATCH = {
     "plot_chart": _tool_plot_chart,
 }
 
-# ── Agent system prompt ───────────────────────────────────────────────────────
 
 _AGENT_SYSTEM = textwrap.dedent("""\
     You are an expert financial research agent specializing in SEC filings analysis.
@@ -408,19 +393,10 @@ _AGENT_SYSTEM = textwrap.dedent("""\
     - Be thorough but concise. Financial analysts value precision.
 """)
 
-# ── Agent event types ─────────────────────────────────────────────────────────
-# The generator yields dicts with a "type" key for the UI to render:
-#   {"type": "thinking",     "content": "..."}
-#   {"type": "tool_call",    "name": "...", "args": {...}}
-#   {"type": "tool_result",  "name": "...", "result": "..."}
-#   {"type": "chart",        "figure": {...}}
-#   {"type": "answer",       "content": "..."}
-#   {"type": "error",        "content": "..."}
 
 AgentEvent = dict
 
 
-# ── Main agent loop ───────────────────────────────────────────────────────────
 
 MAX_ITERATIONS = 8  # Safety limit to prevent infinite loops
 
@@ -440,15 +416,13 @@ def agent_run(
     """
     client = _get_openai()
 
-    # Build messages from conversation history + new question
     messages: list[dict] = [{"role": "system", "content": _AGENT_SYSTEM}]
 
     if conversation_history:
-        # Include last few turns for conversational context
+
         for msg in conversation_history[-6:]:
             messages.append(msg)
 
-    # Add context hints about active filters
     filter_note = ""
     if company_filter and set(company_filter) != set(COMPANIES.keys()):
         filter_note += f"Active company filter: {', '.join(company_filter)}. "
@@ -479,10 +453,8 @@ def agent_run(
         choice = response.choices[0]
         assistant_msg = choice.message
 
-        # Add assistant message to conversation
         messages.append(assistant_msg.to_dict())
 
-        # If the model wants to call tools
         if assistant_msg.tool_calls:
             for tool_call in assistant_msg.tool_calls:
                 fn_name = tool_call.function.name
@@ -498,7 +470,7 @@ def agent_run(
                     "id": tool_call.id,
                 }
 
-                # Execute the tool
+                # Run tool
                 tool_fn = _TOOL_DISPATCH.get(fn_name)
                 if tool_fn is None:
                     result = f"Unknown tool: {fn_name}"
@@ -508,7 +480,7 @@ def agent_run(
                     except Exception as exc:
                         result = f"Tool error ({fn_name}): {exc}"
 
-                # Handle chart results specially
+                # Charts get special handling
                 if fn_name == "plot_chart" and isinstance(result, dict):
                     yield {"type": "chart", "figure": result}
                     tool_result_str = f"Chart '{fn_args.get('title', 'chart')}' created and displayed to the user."
@@ -522,24 +494,22 @@ def agent_run(
                         "result": display_result,
                     }
 
-                # Feed result back to the model
+                # Feed result back
                 messages.append({
                     "role": "tool",
                     "tool_call_id": tool_call.id,
                     "content": tool_result_str[:6000],  # Stay within context limits
                 })
 
-        # If the model produced a final text answer (no more tool calls)
         elif assistant_msg.content:
             yield {"type": "answer", "content": assistant_msg.content}
             return
 
-        # If stop_reason is stop with no content (unlikely but handle gracefully)
         elif choice.finish_reason == "stop":
             yield {"type": "answer", "content": "Analysis complete. No additional information needed."}
             return
 
-    # Safety: if we hit max iterations
+    # Max iterations safety
     yield {
         "type": "answer",
         "content": (
@@ -549,7 +519,6 @@ def agent_run(
     }
 
 
-# ── Quick smoke test ──────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     print("Running agent smoke test...\n")

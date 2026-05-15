@@ -1,20 +1,5 @@
-# Python 3.11+
-# Stevens Username: harshilmodh
-#
-# Phase 2b — Parse SEC filings, chunk, embed, and index into ChromaDB.
-#
-# sec-edgar-downloader saves each accession as a single full-submission.txt
-# (EDGAR SGML envelope). This script:
-#   1. Reads full-submission.txt; extracts the period from the SGML header
-#      and the primary HTML document from the first <TEXT>…</TEXT> block
-#   2. Falls back to individual .htm/.pdf files if present
-#   3. Cleans text (tables → pipe-delimited, scripts stripped)
-#   4. Chunks with LangChain RecursiveCharacterTextSplitter
-#   5. Tags each chunk with SEC section metadata via regex scan
-#   6. Upserts into a local ChromaDB collection (SHA-256 chunk ID → idempotent)
-#
-# Run after fp_download.py:
-#   python fp_build_kb.py
+# Parses downloaded SEC filings, chunks text, and indexes into ChromaDB.
+# Run after fp_download.py.
 
 from __future__ import annotations
 
@@ -41,36 +26,34 @@ from fp_config import (
     FILING_TYPES,
 )
 
-# ── ChromaDB batch size ───────────────────────────────────────────────────────
 
 UPSERT_BATCH = 50
 
-# ── SEC section-header patterns (checked in order; first match wins) ──────────
-# Each entry: (friendly label, compiled regex)
-
+# map section header keywords -> readable label
+# order matters: 1A before 1, 7A before 7, 9A before 9
 _RAW_SECTIONS = [
-    ("Item 1A - Risk Factors",                 r"\bitem\s+1a\b"),
-    ("Item 1B - Unresolved Staff Comments",    r"\bitem\s+1b\b"),
-    ("Item 1 - Business",                      r"\bitem\s+1\b"),
-    ("Item 2 - Properties",                    r"\bitem\s+2\b"),
-    ("Item 3 - Legal Proceedings",             r"\bitem\s+3\b"),
-    ("Item 5 - Market for Registrant",         r"\bitem\s+5\b"),
-    ("Item 6 - Selected Financial Data",       r"\bitem\s+6\b"),
-    ("Item 7A - Quantitative Disclosures",     r"\bitem\s+7a\b"),
-    ("Item 7 - MD&A",                          r"\bitem\s+7\b"),
-    ("Item 8 - Financial Statements",          r"\bitem\s+8\b"),
-    ("Item 9A - Controls and Procedures",      r"\bitem\s+9a\b"),
-    ("Item 9 - Changes in Accountants",        r"\bitem\s+9\b"),
-    ("Item 15 - Exhibits",                     r"\bitem\s+15\b"),
-    ("Part II",                                r"\bpart\s+ii\b"),
-    ("Part I",                                 r"\bpart\s+i\b"),
+    ("Item 1A - Risk Factors", r"\bitem\s+1a\b"),
+    ("Item 1B - Unresolved Staff Comments", r"\bitem\s+1b\b"),
+    ("Item 1 - Business", r"\bitem\s+1\b"),
+    ("Item 2 - Properties", r"\bitem\s+2\b"),
+    ("Item 3 - Legal Proceedings", r"\bitem\s+3\b"),
+    ("Item 5 - Market for Registrant", r"\bitem\s+5\b"),
+    ("Item 6 - Selected Financial Data", r"\bitem\s+6\b"),
+    ("Item 7A - Quantitative Disclosures", r"\bitem\s+7a\b"),
+    ("Item 7 - MD&A", r"\bitem\s+7\b"),
+    ("Item 8 - Financial Statements", r"\bitem\s+8\b"),
+    ("Item 9A - Controls and Procedures", r"\bitem\s+9a\b"),
+    ("Item 9 - Changes in Accountants", r"\bitem\s+9\b"),
+    ("Item 15 - Exhibits", r"\bitem\s+15\b"),
+    ("Part II", r"\bpart\s+ii\b"),
+    ("Part I", r"\bpart\s+i\b"),
 ]
-SECTION_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
-    (label, re.compile(pattern, re.IGNORECASE))
-    for label, pattern in _RAW_SECTIONS
+SECTION_PATTERNS = [
+    (label, re.compile(pat, re.IGNORECASE))
+    for label, pat in _RAW_SECTIONS
 ]
 
-# Patterns to extract the reporting period from the filing cover page
+# Patterns to extract the reporting period from the cover page
 _PERIOD_RE = re.compile(
     r"(?:quarterly\s+period|annual\s+period|fiscal\s+year|quarter|year|"
     r"nine\s+months|six\s+months|three\s+months)\s+ended\s+"
@@ -79,7 +62,6 @@ _PERIOD_RE = re.compile(
 )
 
 
-# ── Text extraction ───────────────────────────────────────────────────────────
 
 def _table_to_text(table_tag) -> str:
     rows = []
@@ -137,7 +119,7 @@ def parse_submission(path: Path) -> tuple[str, str]:
         return period, re.sub(r"\n{3,}", "\n\n", raw)
 
     html_fragment = raw[text_start + 6 : text_end]
-    # Strip EDGAR XBRL wrapper tags (keep inner HTML intact)
+    # Strip EDGAR XBRL wrappers
     html_fragment = re.sub(r"</?XBRL[^>]*>", "", html_fragment, flags=re.IGNORECASE)
 
     return period, _html_to_text(html_fragment)
@@ -166,13 +148,12 @@ def extract_text(path: Path) -> tuple[str, str]:
         text = parse_pdf(path)
     else:
         text = path.read_text(encoding="utf-8", errors="replace")
-    # Fall back to text-based period detection for standalone HTML/PDF
+    # Fall back to text-based period detection
     m = _PERIOD_RE.search(text[:8000])
     period = m.group(1).strip() if m else "2024"
     return period, text
 
 
-# ── Metadata helpers ──────────────────────────────────────────────────────────
 
 
 def detect_section(chunk_text: str) -> str:
@@ -188,15 +169,14 @@ def chunk_id(text: str) -> str:
     return hashlib.sha256(text.encode()).hexdigest()[:20]
 
 
-# ── Primary-document locator ──────────────────────────────────────────────────
 
 def find_primary_doc(accession_dir: Path) -> Path | None:
-    # Prefer the EDGAR full-submission envelope (always present from downloader)
+    # Prefer the full-submission file (always present from downloader)
     full_sub = accession_dir / "full-submission.txt"
     if full_sub.exists() and full_sub.stat().st_size > 50_000:
         return full_sub
 
-    # Fall back to individual HTML / PDF files (e.g., manually placed filings)
+    # Fall back to individual HTML/PDF files
     candidates = (
         list(accession_dir.glob("*.htm"))
         + list(accession_dir.glob("*.html"))
@@ -208,7 +188,6 @@ def find_primary_doc(accession_dir: Path) -> Path | None:
     return max(candidates, key=lambda f: f.stat().st_size)
 
 
-# ── Main pipeline ─────────────────────────────────────────────────────────────
 
 def build_kb() -> None:
     filings_root = DATA_DIR / "sec-edgar-filings"
@@ -235,7 +214,7 @@ def build_kb() -> None:
 
     summary: dict[str, int] = {t: 0 for t in COMPANIES}
 
-    # Collect all accession dirs to process
+    # Collect accession dirs
     work_items: list[tuple[str, str, Path]] = []
     for ticker in COMPANIES:
         for form_type in FILING_TYPES:
@@ -294,7 +273,7 @@ def build_kb() -> None:
         summary[ticker] += len(chunks)
         tqdm.write(f"         → {len(chunks)} chunks indexed  (period: {period})")
 
-    print("\n── Knowledge Base Summary ──────────────────────────")
+    print("\nKnowledge Base Summary:")
     total = 0
     for ticker, count in summary.items():
         print(f"  {ticker:6s} ({COMPANIES[ticker]}): {count:>5} chunks")

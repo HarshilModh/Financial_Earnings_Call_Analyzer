@@ -1,16 +1,4 @@
-# Python 3.11+
-# Stevens Username: harshilmodh
-#
-# Phase 8 — Multi-Agent Deep Research Pipeline.
-#
-# Three-agent pipeline for autonomous financial research:
-#   1. Planner Agent  — decomposes the topic into research questions
-#   2. Research Agent  — gathers data from the KB for each question
-#   3. Writer Agent    — synthesizes a structured, cited research report
-#
-# Public API:
-#   run_deep_research(topic, company_filter, filing_filter, top_k)
-#   → yields ResearchEvent dicts for streaming UI updates
+# Multi-agent deep research pipeline (planner → researcher → writer).
 
 from __future__ import annotations
 
@@ -33,7 +21,6 @@ from fp_config import (
     TOP_K,
 )
 
-# ── Singletons ────────────────────────────────────────────────────────────────
 
 _collection = None
 _openai_client: Optional[OpenAI] = None
@@ -94,17 +81,9 @@ def _search(query: str, company: str | None, filing: str | None, n: int) -> list
     return chunks
 
 
-# ── Event types ───────────────────────────────────────────────────────────────
-# {"type": "phase",    "phase": "planning|researching|writing", "content": str}
-# {"type": "question", "index": int, "total": int, "text": str}
-# {"type": "finding",  "question": str, "summary": str, "sources": list}
-# {"type": "report",   "content": str}
-# {"type": "error",    "content": str}
-
 ResearchEvent = dict
 
 
-# ── Agent 1: Planner ──────────────────────────────────────────────────────────
 
 _PLANNER_SYSTEM = textwrap.dedent("""\
     You are a financial research planner. Given a research topic about SEC filings,
@@ -141,7 +120,6 @@ def _plan(topic: str, companies: list[str] | None) -> list[str]:
     return [topic]  # fallback
 
 
-# ── Agent 2: Researcher ──────────────────────────────────────────────────────
 
 _RESEARCHER_SYSTEM = textwrap.dedent("""\
     You are a financial research analyst. Given a specific question and retrieved
@@ -208,7 +186,6 @@ def _research_question(
     return {"summary": summary, "sources": sources, "chunks": unique_chunks}
 
 
-# ── Agent 3: Writer ───────────────────────────────────────────────────────────
 
 _WRITER_SYSTEM = textwrap.dedent("""\
     You are a senior financial analyst writing a research report. Given a topic
@@ -250,7 +227,6 @@ def _write_report(topic: str, findings: list[dict]) -> str:
     return _llm(_WRITER_SYSTEM, user_msg, temperature=0.1)
 
 
-# ── Main Pipeline ─────────────────────────────────────────────────────────────
 
 
 def run_deep_research(
@@ -264,7 +240,7 @@ def run_deep_research(
     Yields events for the UI to render in real time.
     """
 
-    # ── Phase 1: Planning ─────────────────────────────────────────────────
+    # Planning
     yield {
         "type": "phase",
         "phase": "planning",
@@ -280,7 +256,7 @@ def run_deep_research(
     for i, q in enumerate(questions):
         yield {"type": "question", "index": i + 1, "total": len(questions), "text": q}
 
-    # ── Phase 2: Research ─────────────────────────────────────────────────
+    # Research
     yield {
         "type": "phase",
         "phase": "researching",
@@ -308,7 +284,7 @@ def run_deep_research(
         yield {"type": "error", "content": "No findings gathered. Cannot generate report."}
         return
 
-    # ── Phase 3: Writing ──────────────────────────────────────────────────
+    # Writing
     yield {
         "type": "phase",
         "phase": "writing",
@@ -322,7 +298,6 @@ def run_deep_research(
         yield {"type": "error", "content": f"Report generation failed: {exc}"}
 
 
-# ── Smoke test ────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     print("Running deep research smoke test…\n")

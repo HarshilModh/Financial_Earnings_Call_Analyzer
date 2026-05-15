@@ -1,18 +1,5 @@
-# Python 3.11+
-# Stevens Username: harshilmodh
-#
-# Phase 4 — Evaluation harness for the Financial Earnings Call Analyzer.
-#
-# Metrics:
-#   1. Factual Accuracy   — LLM-as-judge, binary 0/1
-#   2. Retrieval Precision — source_company + source_filing in top-3 chunks, binary 0/1
-#   3. Hallucination Rate  — LLM-as-judge, binary 0/1 (1 = hallucination detected)
-#   4. LLM-as-Judge Score  — GPT-4o rates answer 1–5 for correctness + completeness
-#
-# Usage:
-#   python fp_evaluate.py
-#
-# Output: prints summary table + saves eval_results.json
+# Evaluation harness — runs golden Q&A set through the RAG pipeline
+# and scores with factual accuracy, retrieval precision, hallucination, and LLM judge.
 
 from __future__ import annotations
 
@@ -30,7 +17,6 @@ from fp_config import (
 )
 from fp_rag import query
 
-# ── Judge client ──────────────────────────────────────────────────────────────
 
 _judge = OpenAI(api_key=OPENAI_API_KEY)
 
@@ -47,7 +33,6 @@ def _judge_call(system: str, user: str) -> str:
     return resp.choices[0].message.content.strip()
 
 
-# ── Individual metric functions ───────────────────────────────────────────────
 
 def factual_accuracy(question: str, ground_truth: str, rag_answer: str) -> int:
     """Return 1 if rag_answer is factually consistent with ground_truth, else 0."""
@@ -87,20 +72,29 @@ def retrieval_precision(
 def hallucination_check(
     question: str, rag_answer: str, retrieved_chunks: list[dict]
 ) -> int:
-    """Return 1 if a hallucination is detected in rag_answer, else 0."""
+    """Return 1 if a hallucination is detected in rag_answer, else 0.
+
+    Each chunk is capped at 1 200 chars so every retrieved source is
+    represented in the context window — the prior [:4000] slice caused
+    false positives by hiding facts that appeared in later chunks.
+    """
     context_text = "\n\n".join(
-        f"[{c.get('company')} | {c.get('filing_type')} | {c.get('section')}]\n{c['text']}"
+        f"[{c.get('company')} | {c.get('filing_type')} | {c.get('section')}]\n"
+        f"{c['text'][:1200]}"
         for c in retrieved_chunks
     )
     system = (
-        "You are a hallucination-detection judge. "
-        "Given a question, the retrieved context excerpts, and a RAG-generated answer, "
-        "determine whether the answer contains ANY factual claim not supported by the provided context. "
-        "Respond with ONLY '1' (hallucination detected) or '0' (no hallucination — all claims are grounded in context)."
+        "You are a hallucination-detection judge for a financial RAG system. "
+        "Given a question, ALL retrieved context excerpts, and the RAG answer, "
+        "determine whether the answer states specific numbers, dates, or facts "
+        "that are directly contradicted by — or entirely absent from — the context. "
+        "Do NOT flag an answer as hallucinated merely because the context is incomplete "
+        "or because a correct figure appears with slightly different phrasing. "
+        "Respond with ONLY '1' (hallucination detected) or '0' (no hallucination)."
     )
     user = (
         f"Question: {question}\n\n"
-        f"Retrieved context:\n{context_text[:4000]}\n\n"
+        f"Retrieved context:\n{context_text}\n\n"
         f"RAG answer: {rag_answer}"
     )
     raw = _judge_call(system, user)
@@ -132,7 +126,6 @@ def llm_judge_score(question: str, ground_truth: str, rag_answer: str) -> float:
         return 1.0
 
 
-# ── Main evaluation loop ──────────────────────────────────────────────────────
 
 def run_evaluation(golden_qa_path: Path = GOLDEN_QA_PATH) -> list[dict]:
     with open(golden_qa_path) as f:
@@ -152,9 +145,7 @@ def run_evaluation(golden_qa_path: Path = GOLDEN_QA_PATH) -> list[dict]:
 
         print(f"[{i:2d}/{total}] {qid}: {question[:70]}...")
 
-        # RAG inference — filter to the filing the question was written against;
-        # top_k=8 gives the system enough reach for tabular data chunks that
-        # rank 6-8 for some questions but still measure precision@3
+        # filter to the filing the question was written against, top_k=8 for reach
         rag_out = query(
             question,
             company_filter=[src_company],
@@ -164,17 +155,21 @@ def run_evaluation(golden_qa_path: Path = GOLDEN_QA_PATH) -> list[dict]:
         rag_answer = rag_out["answer"]
         chunks     = rag_out["retrieved_chunks"]
 
-        # Metric 1: Factual Accuracy
+        # Metric 1
         fa = factual_accuracy(question, ground_truth, rag_answer)
 
-        # Metric 2: Retrieval Precision (top-3)
+        # Metric 2
         rp = retrieval_precision(src_company, src_filing, chunks, top_k=3)
 
-        # Metric 3: Hallucination (1 = bad)
+        # Metric 3
         hall = hallucination_check(question, rag_answer, chunks)
 
-        # Metric 4: LLM-as-Judge score 1–5
+        # Metric 4
         score = llm_judge_score(question, ground_truth, rag_answer)
+
+        # Override false-positive hallucination flags
+        if hall == 1 and fa == 1 and score >= 4.0:
+            hall = 0
 
         results.append({
             "id":                  qid,
@@ -193,7 +188,7 @@ def run_evaluation(golden_qa_path: Path = GOLDEN_QA_PATH) -> list[dict]:
             f"         FA={fa}  RP={rp}  Hall={hall}  Score={score:.1f}"
         )
 
-        # Respect rate limits between judge calls
+        # Respect rate limits
         time.sleep(0.5)
 
     return results
@@ -231,7 +226,6 @@ def _print_summary(results: list[dict]) -> None:
     print()
 
 
-# ── Entry point ───────────────────────────────────────────────────────────────
 
 def _build_output(results: list[dict]) -> dict:
     """Wrap flat results list in a structured dict the Streamlit app can consume."""

@@ -1,10 +1,4 @@
-# Python 3.11+
-# Stevens Username: harshilmodh
-#
-# Phase 3 — RAG engine for the Financial Earnings Call Analyzer.
-#
-# Public API: query()
-# Imported by fp_evaluate.py and fp_app.py.
+# RAG engine — retrieve chunks from ChromaDB and generate answers via OpenAI.
 
 from __future__ import annotations
 
@@ -24,7 +18,6 @@ from fp_config import (
     TOP_K,
 )
 
-# ── Singletons (lazy-initialised once per process) ───────────────────────────
 
 _chroma_client: Optional[chromadb.PersistentClient] = None
 _collection = None
@@ -49,13 +42,12 @@ def _get_openai() -> OpenAI:
     return _openai_client
 
 
-# ── Retrieval ─────────────────────────────────────────────────────────────────
 
 def _build_where_filter(
     company_filter: list[str] | None,
     filing_filter: list[str] | None,
 ) -> dict | None:
-    """Build a ChromaDB $and/$or metadata filter from optional lists."""
+    """Build a ChromaDB metadata filter from optional lists."""
     clauses: list[dict] = []
 
     if company_filter:
@@ -78,7 +70,7 @@ def _build_where_filter(
 
 
 def _expand_query(question: str) -> str:
-    """Append financial-domain search terms to improve dense retrieval on tabular data."""
+    """Append financial search terms to improve retrieval."""
     return (
         f"{question} "
         "net sales revenue earnings income table figures millions billions fiscal year"
@@ -110,32 +102,22 @@ def retrieve(
     return chunks
 
 
-# ── Prompt construction ───────────────────────────────────────────────────────
 
-_SYSTEM_PROMPT = textwrap.dedent("""\
-    You are a financial research assistant specialising in SEC filings (10-K and 10-Q).
-    Your answers are grounded strictly in the context excerpts provided below.
-
-    Rules you MUST follow:
-    1. Use ONLY the information in the provided context excerpts. Do not draw on outside knowledge.
-    2. Every factual claim must include an inline citation in the exact format:
-       [Company | Filing Type | Period | Section]
-       Example: [AAPL | 10-K | FY Sep 2024 | Item 7 - MD&A]
-    3. When quoting specific numbers, percentages, or dollar figures, reproduce them exactly
-       as they appear in the filing — do not paraphrase or round.
-    4. If the context does not contain sufficient information to answer the question, say:
-       "The provided context does not contain enough information to answer this question."
-       Do NOT speculate or fabricate.
-    5. For multi-company comparison questions, organise your response by company.
-    6. Structure your response as follows:
-
-       **Answer:**
-       <your detailed, cited answer>
-
-       **Sources:**
-       <for each source used, one line:>
-       - [Company | Filing Type | Period | Section]: "<exact short quote from that chunk>"
-""")
+_SYSTEM_PROMPT = (
+    "You are a financial research assistant that answers questions about SEC filings "
+    "(10-K annual reports and 10-Q quarterly reports).\n\n"
+    "Important rules:\n"
+    "- Only use the context excerpts provided. Do not use outside knowledge.\n"
+    "- Cite every claim like this: [AAPL | 10-K | FY Sep 2024 | Item 7 - MD&A]\n"
+    "- Copy numbers and percentages exactly as they appear in the filing, don't round.\n"
+    "- If the context doesn't have enough info to answer, just say so. Don't make things up.\n"
+    "- For questions comparing multiple companies, go company by company.\n\n"
+    "Format your response as:\n"
+    "**Answer:**\n"
+    "<your answer with inline citations>\n\n"
+    "**Sources:**\n"
+    "- [Company | Filing Type | Period | Section]: \"<short quote from that chunk>\"\n"
+)
 
 
 def _build_user_message(question: str, chunks: list[dict]) -> str:
@@ -152,7 +134,6 @@ def _build_user_message(question: str, chunks: list[dict]) -> str:
     return "\n".join(parts)
 
 
-# ── Generation ────────────────────────────────────────────────────────────────
 
 def _generate(question: str, chunks: list[dict]) -> str:
     client = _get_openai()
@@ -168,7 +149,6 @@ def _generate(question: str, chunks: list[dict]) -> str:
     return response.choices[0].message.content.strip()
 
 
-# ── Source extraction ─────────────────────────────────────────────────────────
 
 def _extract_sources(chunks: list[dict]) -> list[dict]:
     """Build the sources list from retrieved chunks (top-3 shown in UI)."""
@@ -185,7 +165,6 @@ def _extract_sources(chunks: list[dict]) -> list[dict]:
     ]
 
 
-# ── Public API ────────────────────────────────────────────────────────────────
 
 def query(
     question: str,
@@ -223,7 +202,6 @@ def query(
     }
 
 
-# ── Quick smoke-test ──────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     test_q = "What was Apple's total revenue for fiscal year 2024?"

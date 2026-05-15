@@ -4,7 +4,7 @@
 
 **Course:** FE 524 — Prompt Engineering Lab for Business Applications  
 **Due:** May 14, 2026  
-**Author:** Harshil Modh (`harshilmodh`)
+**Course:** FE 524 — Final Project
 
 ---
 

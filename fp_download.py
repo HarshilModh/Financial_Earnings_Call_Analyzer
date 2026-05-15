@@ -1,16 +1,5 @@
-# Python 3.11+
-# Stevens Username: harshilmodh
-#
-# Phase 2a — Download SEC EDGAR filings for AAPL, MSFT, GOOGL.
-#
-# Downloads 1 × 10-K and 3 × 10-Q per company, covering FY2024 filings.
-# Files are saved to data/filings/sec-edgar-filings/<TICKER>/<FORM>/<accession>/
-#
-# Idempotent: already-downloaded companies/form-types are skipped.
-# SEC ToS requires a User-Agent with company name + email — config provides both.
-#
-# Run once before fp_build_kb.py:
-#   python fp_download.py
+# Downloads SEC EDGAR filings (10-K, 10-Q) for AAPL, MSFT, GOOGL.
+# Run once before fp_build_kb.py.
 
 import time
 from pathlib import Path
